@@ -56,30 +56,81 @@ class FmEditor {
       "codeBlock",
       "clean",
     ];
+    this.selectedText = {
+      first: false,
+      selection: false,
+      end: false,
+    };
+    const resetSelection = () => {
+      this.selectedText = {
+        first: false,
+        selection: false,
+        end: false,
+      };
+    };
     this.handleToolClick = (title, value) => {
       this.optionsControl[title] = !this.optionsControl[title];
-      if (this.optionsControl[title]) {
-        this.value = this.value + `< ${value}>`;
+      if (this.selectedText.selection) {
+        this.value =
+          this.selectedText.first +
+          `<${value}>` +
+          this.selectedText.selection +
+          `</${value}>` +
+          this.selectedText.end;
+        resetSelection();
       } else {
-        this.value = this.value + `</${value}>`;
+        if (this.optionsControl[title]) {
+          this.value = this.value + `<${value}>`;
+        } else {
+          this.value = this.value + `</${value}>`;
+        }
       }
     };
     this.handleList = (title, value) => {
       this.optionsControl[title] = !this.optionsControl[title];
-      if (this.optionsControl[title]) {
-        title === "listOl" ? (this.value += `<ol>`) : (this.value += `<ul>`);
+      if (this.selectedText.selection) {
+        const list = title === "listOl" ? "ol" : "ul";
+        const listItem = this.selectedText?.selection?.replaceAll(
+          "<br/>",
+          "</li> <li>"
+        );
+        this.value =
+          this.selectedText.first +
+          `<${list}> <li>` +
+          listItem +
+          `</li> </${list}>` +
+          this.selectedText.end;
+        resetSelection();
       } else {
-        title === "listOl" ? (this.value += `</ol>`) : (this.value += `</ul>`);
+        if (this.optionsControl[title]) {
+          title === "listOl"
+            ? (this.value = this.value + `<ol> <li>`)
+            : (this.value = this.value + `<ul> <li>`);
+        } else {
+          title === "listOl"
+            ? (this.value = this.value + `</li> </ol>`)
+            : (this.value = this.value + `</li> </ul>`);
+        }
       }
-      const list =
-        title === "listOl"
-          ? (this.value += `<>`)
-          : document.createElement("ul");
     };
     const parent = document.getElementById(parentId);
 
     this.handleAlignItems = (title, value) => {
       this.optionsControl[title] = !this.optionsControl[title];
+      if (this.selectedText.selection) {
+        this.value =
+          this.selectedText.first +
+          `<span style="text-align: ${value}"; >` +
+          this.selectedText.selection +
+          `</span>` +
+          this.selectedText.end;
+        resetSelection();
+      } else {
+        this.value = this.value.replace(
+          ">",
+          ` style="text-align: ${value};" >`
+        );
+      }
     };
 
     this.handleTools = (title) => {
@@ -106,6 +157,8 @@ class FmEditor {
         this.handleAlignItems(title, value);
       }
       console.log(this.value);
+      document.getElementById("fm-text-box").value = this.value;
+      document.getElementById("show-demo").innerHTML = this.value;
     };
 
     // create single element
@@ -141,12 +194,74 @@ class FmEditor {
         toolbarDiv.appendChild(toolSection);
       }
     });
+
+    // trim extra white space
+    this.trimSpace = () => {
+      this.value = this.value
+        .split(" ")
+        .filter((word) => word !== "")
+        .join(" ");
+    };
+
+    this.handleChange = (e) => {
+      this.value = e.target.value;
+
+      // handle when need new li
+      if (e.key === "Enter") {
+        const ol = this.value.lastIndexOf("<ol>");
+        const isClosedOl = ol > this.value.lastIndexOf("</ol>");
+        const ul = this.value.lastIndexOf("<ul>");
+        const isClosedUl = ul > this.value.lastIndexOf("</ul>");
+
+        if (isClosedOl || isClosedUl) {
+          this.value = this.value + "</li> <li>";
+        } else {
+          this.value = this.value + "<br/>";
+        }
+      }
+      const emptyLi = this.value.indexOf("<li></li>");
+      if (emptyLi > 0) {
+        this.value = this.value.replace("<li></li>", "");
+      }
+
+      document.getElementById("fm-text-box").value = this.value;
+      document.getElementById("show-demo").innerHTML = this.value;
+    };
+
+    // handle Selection
+    this.handleSelection = (e) => {
+      if (e.target.selectionStart !== 0) {
+        const startPos = e.target.selectionStart;
+        const endPos = e.target.selectionEnd;
+
+        let first = this.value.substring(0, startPos);
+        let selection = this.value.substring(startPos, endPos);
+        let end = this.value.substring(endPos);
+        this.selectedText = {
+          first,
+          selection,
+          end,
+        };
+      }
+      this.trimSpace();
+    };
+
     // add editor
     const textBox = document.createElement("textarea");
     textBox.classList.add("fm-text-area");
     textBox.value = this.value;
+    textBox.addEventListener("keyup", (event) => {
+      this.handleChange(event);
+    });
+    textBox.addEventListener("mouseup", (event) => this.handleSelection(event));
     textBox.id = "fm-text-box";
     parent.appendChild(toolbarDiv);
     parent.appendChild(textBox);
+
+    // show demo
+    const showDemo = document.createElement("span");
+    showDemo.id = "show-demo";
+    showDemo.style = "width:100%; background:green";
+    parent.appendChild(showDemo);
   }
 }
