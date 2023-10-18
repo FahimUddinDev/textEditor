@@ -318,7 +318,7 @@ class FmEditor {
         }
         this.optionsControl.codeBlock = !this.optionsControl.codeBlock;
       } else if (title === "clean") {
-        this.value = "";
+        this.value = `<div><${this.activeTag === "" ? "p" : this.activeTag}>`;
       }
       document.getElementById("fm-text-box").value = this.value;
       document.getElementById("show-demo").innerHTML = `${this.value} </div>`;
@@ -327,10 +327,13 @@ class FmEditor {
     // create single element
     const spanNode = (icon, name) => {
       const span = document.createElement("span");
+      span.classList.add("tool-group");
       const img = document.createElement("img");
       img.src = icon;
+      img.classList.add("icon-img");
       const button = document.createElement(`a`);
       button.appendChild(img);
+      button.classList.add("icon-btn");
       button.addEventListener("click", () => this.handleTools(name));
       span.appendChild(button);
       return span;
@@ -535,8 +538,7 @@ class FmEditor {
     // show demo
     const showDemo = document.createElement("span");
     showDemo.id = "show-demo";
-    showDemo.class = "fm-text-box-demo";
-    showDemo.style = "width:100%; background:green";
+    showDemo.classList.add("fm-text-box-demo");
     parent.appendChild(toolbarDiv);
     parent.appendChild(showDemo);
     parent.appendChild(textBox);

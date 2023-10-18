@@ -68,14 +68,14 @@ class FmEditor {
       selection: false,
       end: false,
     };
-    const resetSelection = () => {
+    FmEditor.prototype.resetSelection = () => {
       this.selectedText = {
         first: false,
         selection: false,
         end: false,
       };
     };
-    this.handleToolClick = (title, value) => {
+    FmEditor.prototype.handleToolClick = (title, value) => {
       this.optionsControl[title] = !this.optionsControl[title];
       if (this.selectedText.selection) {
         this.value =
@@ -93,7 +93,7 @@ class FmEditor {
         }
       }
     };
-    this.handleList = (title, value) => {
+    FmEditor.prototype.handleList = (title, value) => {
       this.optionsControl[title] = !this.optionsControl[title];
       if (this.selectedText.selection) {
         const list = title === "listOl" ? "ol" : "ul";
@@ -107,7 +107,7 @@ class FmEditor {
           listItem +
           `</li> </${list}>` +
           this.selectedText.end;
-        resetSelection();
+        this.resetSelection();
       } else {
         if (this.optionsControl[title]) {
           title === "listOl"
@@ -122,7 +122,7 @@ class FmEditor {
     };
     const parent = document.getElementById(parentId);
 
-    this.handleAlignItems = (title, value) => {
+    FmEditor.prototype.handleAlignItems = (title, value) => {
       this.optionsControl[title] = !this.optionsControl[title];
       if (this.selectedText.selection) {
         this.value =
@@ -131,7 +131,7 @@ class FmEditor {
           this.selectedText.selection +
           `</span>` +
           this.selectedText.end;
-        resetSelection();
+        this.resetSelection();
       } else {
         const stopIndex = this.value.indexOf(">");
         const valueSlice = this.value.slice(0, stopIndex + 1);
@@ -172,7 +172,7 @@ class FmEditor {
       }
     };
     // handle link
-    this.submitLink = (title, address, setValue) => {
+    FmEditor.prototype.submitLink = (title, address, setValue) => {
       const link = `<a href="${address}" >${title}</a>`;
       setValue(link);
       document
@@ -181,7 +181,7 @@ class FmEditor {
       document.getElementById("fm-text-box").value = this.value;
       document.getElementById("show-demo").innerHTML = this.value;
     };
-    this.addLink = (setValue) => {
+    FmEditor.prototype.addLink = (setValue) => {
       // making link input
 
       const linkElement = document.createElement("div");
@@ -212,7 +212,7 @@ class FmEditor {
 
     // add image
 
-    this.submitImage = () => {
+    FmEditor.prototype.submitImage = () => {
       const imgSrc = document.getElementById("imageSrc").value;
       if (imgSrc) {
         const image = `<img src="${imgSrc}" alt="" />`;
@@ -225,7 +225,7 @@ class FmEditor {
       }
     };
 
-    this.addImage = () => {
+    FmEditor.prototype.addImage = () => {
       const imageInput = document.createElement("input");
       imageInput.type = "text";
       imageInput.placeholder = "enter image src";
@@ -244,7 +244,7 @@ class FmEditor {
     // add video
     // add image
 
-    this.submitVideo = () => {
+    FmEditor.prototype.submitVideo = () => {
       const videoSrc = document.getElementById("videoSrc").value;
       if (videoSrc) {
         const video = `<iframe src="${videoSrc}" alt="" />`;
@@ -257,7 +257,7 @@ class FmEditor {
       }
     };
 
-    this.addVideo = () => {
+    FmEditor.prototype.addVideo = () => {
       const videoInput = document.createElement("input");
       videoInput.type = "text";
       videoInput.placeholder = "enter video src";
@@ -273,7 +273,7 @@ class FmEditor {
       parent.appendChild(videoParent);
     };
 
-    this.handleTools = (title) => {
+    FmEditor.prototype.handleTools = (title) => {
       if (title === "bold" || title === "italic" || title === "underline") {
         const value = title === "bold" ? "b" : title === "italic" ? "i" : "u";
         this.handleToolClick(title, value);
@@ -325,7 +325,7 @@ class FmEditor {
     };
 
     // create single element
-    const spanNode = (icon, name) => {
+    FmEditor.prototype.spanNode = (icon, name) => {
       const span = document.createElement("span");
       const img = document.createElement("img");
       img.src = icon;
@@ -342,7 +342,7 @@ class FmEditor {
       // dont want customized anything and dont watn to make group send in string
 
       if (typeof tool === "string") {
-        toolbarDiv.appendChild(spanNode(this.toolbarIcons[tool], tool));
+        toolbarDiv.appendChild(this.spanNode(this.toolbarIcons[tool], tool));
         toolbarDiv.classList.add("fm-icon-wrapper");
       } else if (typeof tool === "object") {
         if (tool.tagList) {
@@ -463,8 +463,10 @@ class FmEditor {
             // want to make group send in array
             // want to customized icon send in object with name and icon
             typeof item === "string"
-              ? toolSection.appendChild(spanNode(this.toolbarIcons[item], item))
-              : toolSection.appendChild(spanNode(item.icon, item.name));
+              ? toolSection.appendChild(
+                  this.spanNode(this.toolbarIcons[item], item)
+                )
+              : toolSection.appendChild(this.spanNode(item.icon, item.name));
           });
           toolbarDiv.appendChild(toolSection);
         }
@@ -472,14 +474,14 @@ class FmEditor {
     });
 
     // trim extra white space
-    this.trimSpace = () => {
+    FmEditor.prototype.trimSpace = () => {
       this.value = this.value
         .split(" ")
         .filter((word) => word !== "")
         .join(" ");
     };
 
-    this.handleChange = (e) => {
+    FmEditor.prototype.handleChange = (e) => {
       this.value = e.target.value;
 
       // handle when need new li
@@ -505,7 +507,7 @@ class FmEditor {
     };
 
     // handle Selection
-    this.handleSelection = (e) => {
+    FmEditor.prototype.handleSelection = (e) => {
       if (e.target.selectionStart !== 0) {
         const startPos = e.target.selectionStart;
         const endPos = e.target.selectionEnd;
@@ -520,6 +522,7 @@ class FmEditor {
         };
       }
       this.trimSpace();
+      return this.selectedText;
     };
 
     // add editor
@@ -535,10 +538,13 @@ class FmEditor {
     // show demo
     const showDemo = document.createElement("span");
     showDemo.id = "show-demo";
-    showDemo.class = "fm-text-box-demo";
-    showDemo.style = "width:100%; background:green";
+    showDemo.classList.add("fm-text-box-demo");
     parent.appendChild(toolbarDiv);
-    parent.appendChild(showDemo);
-    parent.appendChild(textBox);
+    // make demo and texteditor wrapper
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("body-wrapper");
+    wrapper.appendChild(textBox);
+    wrapper.appendChild(showDemo);
+    parent.appendChild(wrapper);
   }
 }
